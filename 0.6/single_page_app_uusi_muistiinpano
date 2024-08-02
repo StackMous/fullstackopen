@@ -1,0 +1,10 @@
+sequenceDiagram
+    participant browser
+    participant server
+
+    browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+    activate server
+    Note right of browser: New note is sent as JSON
+    server-->>browser: Created
+    deactivate server
+    Note right of browser: No reloading of pages needed
