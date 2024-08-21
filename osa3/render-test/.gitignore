@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 # dist removed for deploying to internet
+.env
 dist-ssr
 *.local
 
