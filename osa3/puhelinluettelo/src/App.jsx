@@ -54,7 +54,12 @@ const App = () => {
             setNewName('')
             setNewNumber('')
             showNotification(`Added ${returnedPerson.name}`)
-        })
+          })
+          .catch(error => {
+            console.log("no jo nyt on saatana")
+            console.log(`${error.response.data.error}`)
+            showError(`${error.response.data.error}`)
+          })
       }
     }
   }

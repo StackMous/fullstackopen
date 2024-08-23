@@ -1,5 +1,4 @@
 const Person = ({name, number, removePerson}) => {
-    console.log('person props')
     console.log(name, number, removePerson)
     return (
       <li>
