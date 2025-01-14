@@ -27,6 +27,8 @@ const notesInDb = async () => {
 
 const usersInDb = async () => {
   const users = await User.find({})
+  console.log('EKA USERI!!')
+  console.log(users[0])
   return users.map(u => u.toJSON())
 }
 

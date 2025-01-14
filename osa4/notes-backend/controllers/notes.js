@@ -1,6 +1,7 @@
 const notesRouter = require('express').Router()
 const Note = require('../models/note')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 notesRouter.get('/', async (request, response) => {
   const notes = await Note
@@ -20,13 +21,28 @@ notesRouter.put('/:id', async (request, response) => {
   response.json(updatedNote)
 })
 
+const getTokenFrom = request => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
+}
+
 notesRouter.post('/', async (request, response) => {
   const body = request.body
   console.log('tarvo body')
   console.log(body)
 
   console.log(`tarvo userId ${body.userId}`)
-  const user = await User.findById(body.userId)
+  const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
+  console.log(`tarvo decodedToken ${decodedToken}`)
+
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+  const user = await User.findById(decodedToken.id)
+  //const user = await User.findById(body.userId)
   //const user = User.findById(body.userId)
   console.log(`tarvo user ${user}`)
 
@@ -36,7 +52,6 @@ notesRouter.post('/', async (request, response) => {
     important: body.important === undefined ? false : body.important,
     user: user._id
   })
-  console.log(`tarvo new note `)
   console.log(note)
 
 

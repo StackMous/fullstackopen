@@ -232,7 +232,6 @@ describe('when there is initially one user at db', () => {
     assert.strictEqual(usersAtEnd.length, usersAtStart.length)
     assert(result.text.includes('too short password'))
   })
-
 })
 
 after(async () => {
