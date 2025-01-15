@@ -19,14 +19,14 @@ usersRouter.post('/', async (request, response) => {
   })
 
   const savedUser = await user.save()
-  console.log(`savedUser success`)
+  console.log('savedUser success')
 
   response.status(201).json(savedUser)
 })
 
 usersRouter.get('/', async (request, response) => {
   const users = await User
-    .find({}).populate('blogs', {title: 1, author: 1})
+    .find({}).populate('blogs', { title: 1, author: 1 })
   response.json(users)
 })
 

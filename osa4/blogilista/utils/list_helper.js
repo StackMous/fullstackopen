@@ -9,10 +9,10 @@ const totalLikes = (blogs) => {
 const favoriteBlog = (blogs) => {
   if (blogs.length === 0) return {}
   const chosen = blogs.reduce((prev, curr) => prev.likes > curr.likes ? prev : curr)
-  return { 
-    "title": `${chosen.title}`,
-    "author": `${chosen.author}`,
-    "likes": chosen.likes,
+  return {
+    'title': `${chosen.title}`,
+    'author': `${chosen.author}`,
+    'likes': chosen.likes,
   }
 }
 
@@ -23,12 +23,12 @@ const mostBlogs = (blogs) => {
   //  Michael Chan,Edsger W. Dijkstra,Edsger W. Dijkstra,Robert C. Martin,Robert C. Martin,Robert C. Martin
   // ["Michael Chan","Edsger W. Dijkstra","Edsger W. Dijkstra","Robert C. Martin","Robert C. Martin","Robert C. Martin"]
 
-  countPerAuthor = authors.reduce((count, author) => {
+  let countPerAuthor = authors.reduce((count, author) => {
     logger.info(`author ${author}`)
-    count[author] = (count[author] || 0) + 1;
+    count[author] = (count[author] || 0) + 1
     logger.info(`count per this author ${count[author]}`)
-    return count;
-  }, {});
+    return count
+  }, {})
   //console.log(countPerAuthor)
   //# { 'Michael Chan': 1, 'Edsger W. Dijkstra': 2, 'Robert C. Martin': 3 }
   //# {"Michael Chan":1,"Edsger W. Dijkstra":2,"Robert C. Martin":3}
@@ -55,10 +55,10 @@ const mostLikes = (blogs) => {
     logger.info(`author ${author}`)
     logger.info(`likes ${blog.likes}`)
 
-    likes[author] = (likes[author] || 0) + blog.likes;
+    likes[author] = (likes[author] || 0) + blog.likes
     logger.info(`likes per this author ${likes[author]}`)
-    return likes;
-  }, {});
+    return likes
+  }, {})
   console.log(likesPerAuthor)
 
   let maxLikes = 0
@@ -69,12 +69,12 @@ const mostLikes = (blogs) => {
       authorWithMaxLikes.author = key
       authorWithMaxLikes.likes = value
     }
-    logger.info(`Key: ${key}, Value: ${value}`);
+    logger.info(`Key: ${key}, Value: ${value}`)
   }
   return authorWithMaxLikes
 }
 
-const dummy = (blogs) => {
+const dummy = () => {
   return 1
 }
 

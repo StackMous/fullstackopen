@@ -14,7 +14,7 @@ const tokenExtractor = (request, response, next) => {
   const authorization = request.get('authorization')
   if (authorization && authorization.startsWith('Bearer ')) {
     const token = jwt.verify(
-      authorization.replace('Bearer ', ''), 
+      authorization.replace('Bearer ', ''),
       process.env.SECRET
     )
     if (!token.id) {
@@ -33,11 +33,12 @@ const userExtractor = async (request, response, next) => {
   } else {
     request.user = await User.findById(decodedToken.id)
   }
- next()
+  next()
 }
 
 const unknownEndpoint = (request, response, next) => {
   response.status(404).send({ error: 'unknown endpoint' })
+  next()
 }
 
 const errorHandler = (error, request, response, next) => {

@@ -5,7 +5,7 @@ const supertest = require('supertest')
 const app = require('../app')
 const Blog = require('../models/blog')
 const helper = require('./test_helper')
-const { url } = require('node:inspector')
+//const { url } = require('node:inspector')
 const bcrypt = require('bcrypt')
 const User = require('../models/user')
 
@@ -67,9 +67,9 @@ describe('when trying some basic tests', () => {
   test('a new blog can be added ', async () => {
     const token = await loginExistingUser()
     const newBlog = {
-      title: "Setämies SUPpaa",
-      author: "Musta S. Naamio",
-      url: "http://www.bengali-jungle.info/~urja-goes-SUPping.html",
+      title: 'Setämies SUPpaa',
+      author: 'Musta S. Naamio',
+      url: 'http://www.bengali-jungle.info/~urja-goes-SUPping.html',
       likes: 14003,
     }
 
@@ -88,11 +88,11 @@ describe('when trying some basic tests', () => {
 
   test('blog with no likes given has 0 likes', async () => {
     const token = await loginExistingUser()
-    // new blog without likes defined 
+    // new blog without likes defined
     const newBlog = {
-      title: "gym teacher's philosophy",
-      author: "P. K. Arjalainen",
-      url: "http://www.loser.fi/~loving-tahko-pihkala.html",
+      title: 'gym teacher\'s philosophy',
+      author: 'P. K. Arjalainen',
+      url: 'http://www.loser.fi/~loving-tahko-pihkala.html',
     }
 
     await api
@@ -113,8 +113,8 @@ describe('when trying some basic tests', () => {
   test('blog with no title is rejected', async () => {
     const token = await loginExistingUser()
     const newBlog = {
-      author: "K. Likkiotsikko",
-      url: "http://www.is.fi/~oletko-aina-keittänyt-kahvin-väärin.html",
+      author: 'K. Likkiotsikko',
+      url: 'http://www.is.fi/~oletko-aina-keittänyt-kahvin-väärin.html',
       likes: 5
     }
 
@@ -132,8 +132,8 @@ describe('when trying some basic tests', () => {
   test('blog with no url is rejected', async () => {
     const token = await loginExistingUser()
     const newBlog = {
-      title: "Oletko aina keittänyt kahvisi väärin?",
-      author: "K. Likkiotsikko",
+      title: 'Oletko aina keittänyt kahvisi väärin?',
+      author: 'K. Likkiotsikko',
       likes: 5
     }
 
@@ -172,9 +172,9 @@ describe('when trying some basic tests', () => {
     const token = await loginExistingUser()
 
     const newBlog = {
-      title: "Ihan turha",
-      author: "Blorha Tugi",
-      url: "http://www.turhuus.info/",
+      title: 'Ihan turha',
+      author: 'Blorha Tugi',
+      url: 'http://www.turhuus.info/',
       likes: 1,
     }
 
@@ -192,7 +192,7 @@ describe('when trying some basic tests', () => {
 
     await api
       .delete(`/api/blogs/${blogToDelete.body.id}`)
-      .set({Authorization: `${token}`})
+      .set({ Authorization: `${token}` })
       .expect(204)
 
     const blogsAtEnd = await helper.blogsInDb()
@@ -216,7 +216,7 @@ describe('when trying some basic tests', () => {
       .expect(200)
 
     // verify that id still matches and likes has been updated
-    assert.strictEqual(result.body.likes, updatedBlog.likes) 
+    assert.strictEqual(result.body.likes, updatedBlog.likes)
     assert.strictEqual(result.body.id, blogToUpdate.id)
   })
 })
