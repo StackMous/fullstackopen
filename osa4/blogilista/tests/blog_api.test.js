@@ -15,6 +15,10 @@ describe('when trying some basic tests', () => {
   beforeEach(async () => {
     await Blog.deleteMany({})
     await Blog.insertMany(helper.initialBlogs)
+    await User.deleteMany({})
+    const passwordHash = await bcrypt.hash('bengali', 10)
+    const user = new User({ username: 'mustanaamio', passwordHash })
+    await user.save()
   })
 
   test('blogs are returned as json', async () => {
@@ -45,7 +49,23 @@ describe('when trying some basic tests', () => {
     assert(contents2[0] === undefined)
   })
 
+  const loginExistingUser = async () => {
+    const existingUser = {
+      username: 'mustanaamio',
+      password: 'bengali',
+    }
+    const result = await api
+      .post('/api/login')
+      .send(existingUser)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    assert(result.body.token, 'get token failed')
+    return `Bearer ${result.body.token}`
+  }
+
   test('a new blog can be added ', async () => {
+    const token = await loginExistingUser()
     const newBlog = {
       title: "Setämies SUPpaa",
       author: "Musta S. Naamio",
@@ -55,6 +75,7 @@ describe('when trying some basic tests', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', token)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -66,6 +87,7 @@ describe('when trying some basic tests', () => {
   })
 
   test('blog with no likes given has 0 likes', async () => {
+    const token = await loginExistingUser()
     // new blog without likes defined 
     const newBlog = {
       title: "gym teacher's philosophy",
@@ -75,6 +97,7 @@ describe('when trying some basic tests', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', token)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -83,13 +106,12 @@ describe('when trying some basic tests', () => {
 
     const likes = response.map(r => r.likes)
     assert.strictEqual(response.length, helper.initialBlogs.length + 1)
-    console.log(`liketyksiä ${likes}`)
-    console.log(`response len = ${response.length}, likes len ${likes.length}`)
     // last added blog did not have likes. Now it should have 0.
     assert(likes[response.length - 1] !== undefined)
   })
 
   test('blog with no title is rejected', async () => {
+    const token = await loginExistingUser()
     const newBlog = {
       author: "K. Likkiotsikko",
       url: "http://www.is.fi/~oletko-aina-keittänyt-kahvin-väärin.html",
@@ -98,6 +120,7 @@ describe('when trying some basic tests', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', token)
       .send(newBlog)
       .expect(400)
 
@@ -107,6 +130,7 @@ describe('when trying some basic tests', () => {
   })
 
   test('blog with no url is rejected', async () => {
+    const token = await loginExistingUser()
     const newBlog = {
       title: "Oletko aina keittänyt kahvisi väärin?",
       author: "K. Likkiotsikko",
@@ -115,32 +139,64 @@ describe('when trying some basic tests', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', token)
       .send(newBlog)
       .expect(400)
 
-    const response = await helper.blogsInDb()
+    const afterBlogs = await helper.blogsInDb()
     // new blog was not saved
-    assert.strictEqual(response.length, helper.initialBlogs.length)
+    assert.strictEqual(afterBlogs.length, helper.initialBlogs.length)
   })
+
+  /*test('blog with no token is rejected', async () => {
+    //token = await loginExistingUser()
+    const newBlog = {
+      title: "Ei tokenia, ei menestystä",
+      author: "Anonymous",
+      likes: 0
+    }
+
+    await api
+      .post('/api/blogs')
+      .set('Authorization', 'Bearer ')
+      .send(newBlog)
+      .expect(401)
+
+    const afterBlogs = await helper.blogsInDb()
+    // new blog was not saved
+    assert.strictEqual(afterBlogs.length, helper.initialBlogs.length)
+  })*/
 
   test('a blog can be deleted', async () => {
     const blogsAtStart = await helper.blogsInDb()
-    const blogToDelete = blogsAtStart[0]
-    console.log(`blog to delete ${blogToDelete}`)
-    console.log(blogsAtStart)
-    console.log(blogToDelete)
-    console.log(blogToDelete.id)
+    const token = await loginExistingUser()
+
+    const newBlog = {
+      title: "Ihan turha",
+      author: "Blorha Tugi",
+      url: "http://www.turhuus.info/",
+      likes: 1,
+    }
+
+    const blogToDelete = await api
+      .post('/api/blogs')
+      .set('Authorization', token)
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const blogsAfterAdding = await helper.blogsInDb()
+    const contents = blogsAfterAdding.map(r => r.title)
+    assert(contents.includes('Ihan turha'))
+    console.log(`blog to delete.body.id ${blogToDelete.body.id}`)
 
     await api
-      .delete(`/api/blogs/${blogToDelete.id}`)
+      .delete(`/api/blogs/${blogToDelete.body.id}`)
+      .set({Authorization: `${token}`})
       .expect(204)
 
     const blogsAtEnd = await helper.blogsInDb()
-
-    const contents = blogsAtEnd.map(r => r.title)
-    assert(!contents.includes(blogToDelete.title))
-
-    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+    assert.strictEqual(blogsAtEnd.length, blogsAtStart.length)
   })
 
   test('a blog can be updated', async () => {
@@ -168,10 +224,8 @@ describe('when trying some basic tests', () => {
 describe('when there is initially one user at db', () => {
   beforeEach(async () => {
     await User.deleteMany({})
-
     const passwordHash = await bcrypt.hash('sekret', 10)
     const user = new User({ username: 'root', passwordHash })
-
     await user.save()
   })
 
@@ -231,6 +285,31 @@ describe('when there is initially one user at db', () => {
     const usersAtEnd = await helper.usersInDb()
     assert.strictEqual(usersAtEnd.length, usersAtStart.length)
     assert(result.text.includes('too short password'))
+  })
+})
+
+describe('when authentication is in use', () => {
+  beforeEach(async () => {
+    await User.deleteMany({})
+    const passwordHash = await bcrypt.hash('kissa', 10)
+    const user = new User({ username: 'setamies', passwordHash })
+    await user.save()
+  })
+
+  test('a user can login ', async () => {
+    const existingUser = {
+      username: 'setamies',
+      password: 'kissa',
+    }
+
+    const result = await api
+      .post('/api/login')
+      .send(existingUser)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    assert.strictEqual(result.body.username, existingUser.username)
+    assert(result.body.token)
   })
 })
 

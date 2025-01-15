@@ -10,8 +10,11 @@ blogsRouter.get('/', async (request, response) => {
 blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
   const body = request.body
   const user = request.user
-  console.log(console.log(`token's id ${request.token.id}`))
-  console.log(console.log(`token's user ${request.user}`))
+  if (!request.token.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+//  console.log(`token's id ${request.token.id}`)
+//  console.log(`token's user ${request.user}`)
   if (body.title === undefined || body.url === undefined) {
     return response.status(400).end()
   } 
