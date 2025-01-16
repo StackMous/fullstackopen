@@ -5,7 +5,6 @@ const supertest = require('supertest')
 const app = require('../app')
 const Blog = require('../models/blog')
 const helper = require('./test_helper')
-//const { url } = require('node:inspector')
 const bcrypt = require('bcrypt')
 const User = require('../models/user')
 
