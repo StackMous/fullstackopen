@@ -1,20 +1,23 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
 import Error from './components/Error'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import BlogForm from './components/BlogForm'
+import Togglable from './components/Togglable'
+import LoginForm from './components/LoginForm'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [newTitle, setNewTitle] = useState('') 
-  const [newAuthor, setNewAuthor] = useState('') 
-  const [newUrl, setNewUrl] = useState('') 
   const [newError, setNewError] = useState(null)
   const [newMessage, setNewMessage] = useState(null)
   const [username, setUsername] = useState('') 
   const [password, setPassword] = useState('') 
   const [user, setUser] = useState(null)
+  const [loginVisible, setLoginVisible] = useState(false)
+
+  const blogFormRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -60,29 +63,13 @@ const App = () => {
     }
   }
   
-  const addBlog = (event) => {
-    event.preventDefault()
-    const blogObject = {
-      title: newTitle,
-      author: newAuthor,
-      url: newUrl,
-    }
-  
+  const addBlog = (blogObject) => {
+    blogFormRef.current.toggleVisibility()
     blogService
       .create(blogObject)
       .then(returnedBlog => {
-        setBlogs(blogs.concat(returnedBlog))
-        showNotification(`A new blog ${newTitle} by ${newAuthor} added`)
-        setNewTitle('')
-        setNewAuthor('')
-        setNewUrl('')
-        setTimeout(() => {
-          setNewError(null)
-        }, 5000)
-
-      })
-      .catch(error => {
-        showError(`Somethjing happened`)
+        //setBlogs(blogs.concat(returnedBlog))
+        setBlogs(blogs.concat(returnedBlog, user))
       })
   }
 
@@ -100,44 +87,30 @@ const App = () => {
     }, 3000)
   }
 
-  const handleTitleChange = (event) => {
-    setNewTitle(event.target.value)
-  }
-  const handleAuthorChange = (event) => {
-    setNewAuthor(event.target.value)
-  }
-  const handleUrlChange = (event) => {
-    setNewUrl(event.target.value)
-  }
+  const loginForm = () => {
+    const hideWhenVisible = { display: loginVisible ? 'none' : '' }
+    const showWhenVisible = { display: loginVisible ? '' : 'none' }
 
-  const loginForm = () => (
-    <div>
-      <h2>log in to application</h2>
-      <Notification message={newMessage} />
-      <Error message={newError} />
-      <form onSubmit={handleLogin}>
-        <div>
-          username
-            <input
-            type="text"
-            value={username}
-            name="Username"
-            onChange={({ target }) => setUsername(target.value)}
-          />
-        </div>
-        <div>
-          password
-            <input
-            type="password"
-            value={password}
-            name="Password"
-            onChange={({ target }) => setPassword(target.value)}
-          />
-        </div>
-        <button type="submit">login</button>
-      </form>      
-    </div>
-  )
+    return (
+      <div>
+        <Notification message={newMessage} />
+        <Error message={newError} />
+        <div style={hideWhenVisible}>
+            <button onClick={() => setLoginVisible(true)}>log in</button>
+          </div>
+          <div style={showWhenVisible}>
+            <LoginForm
+              username={username}
+              password={password}
+              handleUsernameChange={({ target }) => setUsername(target.value)}
+              handlePasswordChange={({ target }) => setPassword(target.value)}
+              handleSubmit={handleLogin}
+            />
+            <button onClick={() => setLoginVisible(false)}>cancel</button>
+          </div>
+      </div>
+    )
+  }
 
   const logoutForm = () => (
     <div>
@@ -146,54 +119,46 @@ const App = () => {
       </form>      
     </div>
   )
+  
+  const blogsList = () => {
+    // Miksi ihmeessä key tarvitsi "dummy" indexin, 
+    // että warning "each child in the list should've unique key" katosi?
+    return(
+      blogs.map((blog,index) => 
+        <Blog key={blog.id + index} blog={blog} user={blog.user}/> 
+      )
+  )}
 
-  const blogsForm = () => (
-    <div>
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
-    </div>
-  )
-
-  const createBlogForm = () => (
-    <form onSubmit={addBlog}>
-      <label>title: 
-        <input
-          value={newTitle}
-          onChange={handleTitleChange}
-        />
-      </label>
-      <br/>
-      <label>author: 
-        <input
-          value={newAuthor}
-          onChange={handleAuthorChange}
-        />
-      </label>
-      <br/>
-      <label>url: 
-        <input
-          value={newUrl}
-          onChange={handleUrlChange}
-        />
-      </label>
-      <br/>
-      <button type="submit">create</button>
-    </form>  
-  )
+  const blogForm = () => {
+    return(
+      <div>
+          <Togglable buttonLabel='create new blog' ref={blogFormRef}>
+            <BlogForm 
+              createBlog={addBlog}
+            /> 
+          </Togglable>
+      </div>
+    )
+  }
 
   return (
     <div>
-      {!user && loginForm()}
+      <h2>blogs</h2>
+      {!user && <div>
+        loginForm() 
+        blogsList()
+        </div>
+      }
       {user && <div>
-          <h2>blogs</h2>
+          
           <Notification message={newMessage} />
           <Error message={newError} />
           {logoutForm()}
-          {createBlogForm()}
-          {blogsForm()}
+          {blogForm()}
+          {blogsList()}    
         </div>
       }
+      
     </div>
   )
 }
