@@ -34,6 +34,9 @@ const App = () => {
     }
   }, [])
 
+  //console.log(`${user} logged in`)
+  //console.log(`User: ${JSON.stringify(user)} logged in`)
+
   const handleLogin = async (event) => {
     event.preventDefault()
     try {
@@ -68,11 +71,39 @@ const App = () => {
     blogService
       .create(blogObject)
       .then(returnedBlog => {
-        //setBlogs(blogs.concat(returnedBlog))
         setBlogs(blogs.concat(returnedBlog, user))
       })
   }
 
+  const handleLike = async (blog) => {
+    const updateBlogData = {
+      ...blog,
+      likes: blog.likes + 1
+    }
+    console.log(`updateblog JSON: ${JSON.stringify(updateBlogData)}`)
+    blogService
+      .update(blog.id, updateBlogData)
+      .then(response => {
+        setBlogs(blogs.map(b => b.id === blog.id ? response : b), user)
+      })
+      .catch (error => {
+        console.error(error)
+        showError('failed to add like')
+      })
+  }
+
+  const handleRemove = async (blog) => {
+    try {
+      if (window.confirm(`Remove blog: ${blog.title.toString()}, ${blog.author.toString()}?`)) {
+        //console.log(`deleteblog JSON: ${JSON.stringify(blog)}`)
+        const response = await blogService.remove(blog.id)
+        setBlogs(blogs.filter(b => b.id !== blog.id), user)
+      }
+    } catch (error) {
+      console.error(error)
+      showError('failed to remove')
+    }
+  }
   const showNotification = message => {
     setNewMessage(message)
     setTimeout(() => {
@@ -120,13 +151,29 @@ const App = () => {
     </div>
   )
   
-  const blogsList = () => {
+  const blogsList = (user) => {
     // Miksi ihmeessä key tarvitsi "dummy" indexin, 
     // että warning "each child in the list should've unique key" katosi?
+    
+    //console.log(`Logged in user: ${JSON.stringify(user)}`)
     return(
-      blogs.map((blog,index) => 
-        <Blog key={blog.id + index} blog={blog} user={blog.user}/> 
-      )
+      blogs.sort((a, b) => ( b.likes - a.likes)).map((blog,index) => {
+        let temp = null
+        if (user) {
+          temp = user.username
+        }         
+      
+        return (
+          <Blog 
+            key={blog.id + index} 
+            blog={blog} 
+            user={blog.user}
+            clickLike={() => handleLike(blog)}
+            username={temp}
+            clickRemove={() => handleRemove(blog)}
+          />
+        )
+    })
   )}
 
   const blogForm = () => {
@@ -145,20 +192,18 @@ const App = () => {
     <div>
       <h2>blogs</h2>
       {!user && <div>
-        loginForm() 
-        blogsList()
+          { loginForm() }
+          { blogsList() }
         </div>
       }
       {user && <div>
-          
           <Notification message={newMessage} />
           <Error message={newError} />
-          {logoutForm()}
-          {blogForm()}
-          {blogsList()}    
+          { logoutForm() }
+          { blogForm() }
+          { blogsList(user) }    
         </div>
       }
-      
     </div>
   )
 }

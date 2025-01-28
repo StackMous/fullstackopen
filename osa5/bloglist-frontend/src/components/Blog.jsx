@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const Blog = ({ blog, user }) => {
+const Blog = ({ blog, user, clickLike, username, clickRemove }) => {
   const [visible, setVisible] = useState(false)
   
   const hideWhenVisible = { display: visible ? 'none' : '' }
@@ -18,7 +18,9 @@ const Blog = ({ blog, user }) => {
     marginBottom: 5
   }
   //if (user) {
-  //  console.log(user.name)
+  //  console.log(`Adder of blog: ${JSON.stringify(user)}`)
+  //  console.log(`Username: ${JSON.stringify(username)}`)
+  //  console.log(JSON.stringify(user.username) === JSON.stringify(username))
   //}
 
   return (
@@ -29,20 +31,24 @@ const Blog = ({ blog, user }) => {
         <button onClick={toggleVisibility}>view</button>
       </div>
       <div style={showWhenVisible}>
-      
         {blog.title} {" "}
         {blog.author} {" "}
         <button onClick={toggleVisibility}>hide</button>
         <div> {blog.url} </div>
         <div>
           likes {blog.likes} {" "}
-          <button>like</button>
+          <button onClick={() => { 
+            clickLike(blog) 
+          }}
+          >like</button>
         </div>
         {user && <div>
           {user.name} 
           </div>
         }
-        
+        {user && (JSON.stringify(user.username) === JSON.stringify(username)) && <div>
+          <button onClick={() => clickRemove(blog)}>remove</button>
+        </div>}
       </div>
     </div>
   )
