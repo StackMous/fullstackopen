@@ -15,7 +15,6 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
   }
   //  console.log(`token's id ${request.token.id}`)
   //  console.log(`token's user ${request.user}`)
-  console.log(`likes === ${body.likes}`)
   if (body.title === undefined || body.url === undefined) {
     return response.status(400).end()
   } else {
@@ -26,15 +25,12 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
       likes: 0,
       user: user._id,
     })
-    console.log(`likes ===> ${body.likes}`)
     const savedBlog = await blog.save()
-    //console.log(`user ===> ${JSON.stringify(user)}`)
     const populatedBlog = await savedBlog.populate('user', { username: 1, name: 1 })
     console.log(`savedBlog ===> ${JSON.stringify(savedBlog)}`)
-    console.log(`populatedBlog ===> ${JSON.stringify(populatedBlog)}`)
     user.blogs = user.blogs.concat(savedBlog._id)
     await user.save()
-    //return response.status(201).json(populatedBlog)
+
     return response.status(201).json(savedBlog)
 
   }

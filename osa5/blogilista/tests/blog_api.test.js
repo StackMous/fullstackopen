@@ -147,25 +147,6 @@ describe('when trying some basic tests', () => {
     assert.strictEqual(afterBlogs.length, helper.initialBlogs.length)
   })
 
-  /*test('blog with no token is rejected', async () => {
-    //token = await loginExistingUser()
-    const newBlog = {
-      title: "Ei tokenia, ei menestystä",
-      author: "Anonymous",
-      likes: 0
-    }
-
-    await api
-      .post('/api/blogs')
-      .set('Authorization', 'Bearer ')
-      .send(newBlog)
-      .expect(401)
-
-    const afterBlogs = await helper.blogsInDb()
-    // new blog was not saved
-    assert.strictEqual(afterBlogs.length, helper.initialBlogs.length)
-  })*/
-
   test('a blog can be deleted', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const token = await loginExistingUser()
