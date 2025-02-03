@@ -12,8 +12,8 @@ const App = () => {
   const [blogs, setBlogs] = useState([])
   const [newError, setNewError] = useState(null)
   const [newMessage, setNewMessage] = useState(null)
-  const [username, setUsername] = useState('') 
-  const [password, setPassword] = useState('') 
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
   const [loginVisible, setLoginVisible] = useState(false)
 
@@ -22,7 +22,7 @@ const App = () => {
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
-    )  
+    )
   }, [])
 
   useEffect(() => {
@@ -46,7 +46,7 @@ const App = () => {
       showNotification(`${username} logged in`)
       window.localStorage.setItem(
         'loggedBlogappUser', JSON.stringify(user)
-      ) 
+      )
       blogService.setToken(user.token)
       setUser(user)
       setUsername('')
@@ -55,7 +55,7 @@ const App = () => {
       showError('wrong username or password')
     }
   }
-  
+
   const handleLogout = async (event) => {
     event.preventDefault()
     showNotification(`logging out ${username}`)
@@ -65,11 +65,11 @@ const App = () => {
       showError('failed to log out')
     }
   }
-  
+
   const addBlog = (blogObject) => {
     blogFormRef.current.toggleVisibility()
     blogService
-      .create(blogObject)
+      .create(blogObject, user)
       .then(returnedBlog => {
         setBlogs(blogs.concat(returnedBlog, user))
       })
@@ -80,7 +80,6 @@ const App = () => {
       ...blog,
       likes: blog.likes + 1
     }
-    console.log(`updateblog JSON: ${JSON.stringify(updateBlogData)}`)
     blogService
       .update(blog.id, updateBlogData)
       .then(response => {
@@ -95,7 +94,6 @@ const App = () => {
   const handleRemove = async (blog) => {
     try {
       if (window.confirm(`Remove blog: ${blog.title.toString()}, ${blog.author.toString()}?`)) {
-        //console.log(`deleteblog JSON: ${JSON.stringify(blog)}`)
         const response = await blogService.remove(blog.id)
         setBlogs(blogs.filter(b => b.id !== blog.id), user)
       }
@@ -108,14 +106,14 @@ const App = () => {
     setNewMessage(message)
     setTimeout(() => {
       setNewMessage(null)
-    }, 3000)
+    }, 2000)
   }
 
   const showError = message => {
     setNewError(message)
     setTimeout(() => {
       setNewError(null)
-    }, 3000)
+    }, 2000)
   }
 
   const loginForm = () => {
@@ -127,18 +125,18 @@ const App = () => {
         <Notification message={newMessage} />
         <Error message={newError} />
         <div style={hideWhenVisible}>
-            <button onClick={() => setLoginVisible(true)}>log in</button>
-          </div>
-          <div style={showWhenVisible}>
-            <LoginForm
-              username={username}
-              password={password}
-              handleUsernameChange={({ target }) => setUsername(target.value)}
-              handlePasswordChange={({ target }) => setPassword(target.value)}
-              handleSubmit={handleLogin}
-            />
-            <button onClick={() => setLoginVisible(false)}>cancel</button>
-          </div>
+          <button onClick={() => setLoginVisible(true)}>log in</button>
+        </div>
+        <div style={showWhenVisible}>
+          <LoginForm
+            username={username}
+            password={password}
+            handleUsernameChange={({ target }) => setUsername(target.value)}
+            handlePasswordChange={({ target }) => setPassword(target.value)}
+            handleSubmit={handleLogin}
+          />
+          <button onClick={() => setLoginVisible(false)}>cancel</button>
+        </div>
       </div>
     )
   }
@@ -147,43 +145,41 @@ const App = () => {
     <div>
       <form onSubmit={handleLogout}>
         <p>{user.name} logged in <button type="submit">logout</button></p>
-      </form>      
+      </form>
     </div>
   )
-  
+
   const blogsList = (user) => {
-    // Miksi ihmeessä key tarvitsi "dummy" indexin, 
-    // että warning "each child in the list should've unique key" katosi?
-    
-    //console.log(`Logged in user: ${JSON.stringify(user)}`)
+    // Miksi key+index tarvitaan?
     return(
       blogs.sort((a, b) => ( b.likes - a.likes)).map((blog,index) => {
-        let temp = null
-        if (user) {
-          temp = user.username
-        }         
-      
+        let name = null
+        if (user) { name = user.username }
+        if (blog.title === undefined) {
+          return
+        }
         return (
-          <Blog 
-            key={blog.id + index} 
-            blog={blog} 
+          <Blog
+            key={blog.id+index}
+            blog={blog}
             user={blog.user}
             clickLike={() => handleLike(blog)}
-            username={temp}
-            clickRemove={() => handleRemove(blog)}
+            username={name}
+            clickRemove={ () => handleRemove(blog)}
           />
         )
-    })
-  )}
+      })
+    )
+  }
 
   const blogForm = () => {
     return(
       <div>
-          <Togglable buttonLabel='create new blog' ref={blogFormRef}>
-            <BlogForm 
-              createBlog={addBlog}
-            /> 
-          </Togglable>
+        <Togglable buttonLabel='create new blog' ref={blogFormRef}>
+          <BlogForm
+            createBlog={addBlog}
+          />
+        </Togglable>
       </div>
     )
   }
@@ -192,17 +188,17 @@ const App = () => {
     <div>
       <h2>blogs</h2>
       {!user && <div>
-          { loginForm() }
-          { blogsList() }
-        </div>
+        { loginForm() }
+        { blogsList() }
+      </div>
       }
       {user && <div>
-          <Notification message={newMessage} />
-          <Error message={newError} />
-          { logoutForm() }
-          { blogForm() }
-          { blogsList(user) }    
-        </div>
+        <Notification message={newMessage} />
+        <Error message={newError} />
+        { logoutForm() }
+        { blogForm() }
+        { blogsList(user) }
+      </div>
       }
     </div>
   )
