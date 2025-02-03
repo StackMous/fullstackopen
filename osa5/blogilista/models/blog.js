@@ -1,9 +1,21 @@
 const mongoose = require('mongoose')
 
-const blogSchema = mongoose.Schema({
-  title: String,
-  author: String,
-  url: String,
+const blogSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    minlength: 5
+  },
+  author: {
+    type: String,
+    required: true,
+    minlength: 5
+  },
+  url: {
+    type: String,
+    required: true,
+    minlength: 5
+  },
   likes: Number,
   user: {
     type: mongoose.Schema.Types.ObjectId,

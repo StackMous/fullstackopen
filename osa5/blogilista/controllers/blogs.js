@@ -3,7 +3,7 @@ const Blog = require('../models/blog')
 const middleware = require('../utils/middleware')
 
 blogsRouter.get('/', async (request, response) => {
-  const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
+  const blogs = await Blog.find({}).populate('user', { username: 1, name: 1})
   response.json(blogs)
 })
 
@@ -28,9 +28,15 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
     })
     console.log(`likes ===> ${body.likes}`)
     const savedBlog = await blog.save()
+    //console.log(`user ===> ${JSON.stringify(user)}`)
+    const populatedBlog = await savedBlog.populate('user', { username: 1, name: 1 })
+    console.log(`savedBlog ===> ${JSON.stringify(savedBlog)}`)
+    console.log(`populatedBlog ===> ${JSON.stringify(populatedBlog)}`)
     user.blogs = user.blogs.concat(savedBlog._id)
     await user.save()
+    //return response.status(201).json(populatedBlog)
     return response.status(201).json(savedBlog)
+
   }
 })
 
@@ -46,9 +52,11 @@ blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) =
 })
 
 blogsRouter.get('/:id', async (request, response) => {
+  const user = request.user
   const blog = await Blog.findById(request.params.id)
   if (blog) {
-    response.json(blog)
+    const returnedBlog = await blog.save().populate('user', { username: 1, name: 1 })
+    response.json(returnedBlog)
   } else {
     response.status(404).end()
   }
@@ -56,6 +64,7 @@ blogsRouter.get('/:id', async (request, response) => {
 
 blogsRouter.put('/:id', async (request, response) => {
   const body = request.body
+  const user = request.user
 
   // Do not make a new object by new(), u stupid boy
   const blog = {
