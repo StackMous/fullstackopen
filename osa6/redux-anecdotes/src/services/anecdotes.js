@@ -16,9 +16,6 @@ const createNew = async (content) => {
 }
 
 const update = async (updateContent) => {
-  //const config = {
-  //  headers: { Authorization: token }
-  //}
   console.log(`update service: content = ${updateContent}`)
 
   const newContent = {
